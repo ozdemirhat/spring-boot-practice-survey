@@ -1,8 +1,10 @@
 package com.trendyol.controller;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sun.xml.internal.messaging.saaj.util.Base64;
 import com.trendyol.Application;
 import com.trendyol.model.Question;
 import org.json.JSONException;
@@ -36,9 +38,11 @@ public class SurveyControllerIT {
 
     HttpHeaders headers = new HttpHeaders();
 
+
     @Before
     public void before() {
 
+        headers.add("Authorization", createHttpHAuthenticationHeaderValue("user1","secret1"));
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
     }
@@ -52,7 +56,7 @@ public class SurveyControllerIT {
                 createURLWithPort("/surveys/Survey1/questions/Question1"),
                 HttpMethod.GET, entity, String.class);
 
-        String expected = "{id:Question1,description:Largest Country in the World,correctAnswer:Russia}";
+        String expected = "{\"id\":\"Question1\",\"description\":\"Largest Country in the World\",\"correctAnswer\":\"Russia\",\"options\":[\"India\",\"Russia\",\"United States\",\"China\"]}";
 
         JSONAssert.assertEquals(expected, response.getBody(), false);
     }
@@ -94,6 +98,16 @@ public class SurveyControllerIT {
 
     private String createURLWithPort(final String uri) {
         return "http://localhost:" + port + uri;
+    }
+
+    private String createHttpHAuthenticationHeaderValue(String userId, String password) {
+
+        String auth = userId + ":" + password;
+        byte[] encodedAuth = Base64.encode(auth.getBytes(Charset.defaultCharset().forName("US-ASCII")));
+
+        String headerValue = "Basic " + new String(encodedAuth);
+
+        return headerValue;
     }
 
 }
